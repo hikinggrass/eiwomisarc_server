@@ -22,7 +22,9 @@
 int open_port(void){
 	int fd; /* File descriptor for the port */
 
-	fd = open("/dev/ttyS1", O_RDWR | O_NOCTTY | O_NDELAY);
+	//fd = open("/dev/ttyS1", O_RDWR | O_NOCTTY | O_NDELAY);
+	fd = open("test", O_RDWR | O_NOCTTY | O_NDELAY);
+	
 	if (fd == -1){
 		/* Could not open the port.*/
 		perror("open_port: Unable to open /dev/ttyS1 - ");
@@ -84,14 +86,14 @@ int main(int argc, char *argv[]) {
 			if( buffer[1] < 255)
 			   fprintf(stderr, "buffer 1 <255\n"); //debug
 			if(buffer[2] < 2)
-			   fprintf(stderr, "buffer2 <2\n"); //debug
+			   fprintf(stderr, "buffer 2 <2\n"); //debug
 			if(buffer[3] < 255)
 			   fprintf(stderr, "buffer 3 <255\n"); //debug
 			if(buffer[4] < 255)
 			   fprintf(stderr, "buffer 4 <255\n"); //debug
 			if(buffer[5] < 5) {
-				fprintf(stderr, "lol?\n"); //debug
-				fprintf(stderr, "es geht %s\n", buffer); //debug
+				fprintf(stderr, "buffer 5 <5\n"); //debug
+				fprintf(stderr, "buffer0-5: '%s'\n", buffer); //debug
 				//RS-232 Code
 				int fd = open_port();
 				int n = write(fd, buffer, 6);
