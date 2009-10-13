@@ -55,7 +55,7 @@ int main(int argc, char *argv[]) {
 
 	/* Create the UDP socket */
 	if ((sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) {
-		Die("Failed to create socket");
+		Die("Failed to create socket\n");
 	}
 
 	/* Construct the server sockaddr_in structure */
@@ -67,7 +67,7 @@ int main(int argc, char *argv[]) {
 	/* Bind the socket */
 	serverlen = sizeof(echoserver);
 	if (bind(sock, (struct sockaddr *) &echoserver, serverlen) < 0) {
-		Die("Failed to bind server socket");
+		Die("Failed to bind server socket\n");
 	}
 
 	/* Run until cancelled */
@@ -77,20 +77,20 @@ int main(int argc, char *argv[]) {
 		if ((received = recvfrom(sock, buffer, BUFFSIZE, 0,
 								 (struct sockaddr *) &echoclient,
 								 &clientlen)) < 0) {
-			Die("Failed to receive message");
+			Die("Failed to receive message\n");
 		}
 
 		if(buffer[0] == 255){
 			if( buffer[1] < 255)
-			   fprintf(stderr, "buffer 1 <255"); //debug
+			   fprintf(stderr, "buffer 1 <255\n"); //debug
 			if(buffer[2] < 2)
-			   fprintf(stderr, "buffer2 <2"); //debug
+			   fprintf(stderr, "buffer2 <2\n"); //debug
 			if(buffer[3] < 255)
-			   fprintf(stderr, "buffer 3 <255"); //debug
+			   fprintf(stderr, "buffer 3 <255\n"); //debug
 			if(buffer[4] < 255)
-			   fprintf(stderr, "buffer 4 <255"); //debug
+			   fprintf(stderr, "buffer 4 <255\n"); //debug
 			if(buffer[5] < 5) {
-				fprintf(stderr, "lol?"); //debug
+				fprintf(stderr, "lol?\n"); //debug
 				fprintf(stderr, "es geht %s\n", buffer); //debug
 				//RS-232 Code
 				int fd = open_port();
@@ -99,7 +99,7 @@ int main(int argc, char *argv[]) {
 					fputs("write() of 6 bytes failed!\n", stderr);
 			}
 		}else{
-			fprintf(stderr, "buffer0 != 254");
+			fprintf(stderr, "buffer0 != 254\n");
 		}
 
 		fprintf(stderr, "Client connected: %s\n", inet_ntoa(echoclient.sin_addr));    
