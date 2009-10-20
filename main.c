@@ -30,6 +30,36 @@ int open_port(void){
 		perror("open_port: Unable to open /dev/ttyS1 - ");
 	}else{
 		fcntl(fd, F_SETFL, 0);
+		
+		struct termios options;
+		
+		/*
+		 * Get the current options for the port...
+		 */
+		
+		tcgetattr(fd, &options);
+		
+		/*
+		 * Set the baud rates to 19200...
+		 */
+		
+		cfsetispeed(&options, B9600);
+		cfsetospeed(&options, B9600);
+		
+		/*
+		 * Enable the receiver and set local mode...
+		 */
+		
+		options.c_cflag |= (CLOCAL | CREAD);
+		
+		/*
+		 * Set the new options for the port...
+		 */
+		
+		tcsetattr(fd, TCSANOW, &options);
+		
+		fprintf(stderr, "BAUDRATE SET TO 9600\n"); //debug
+
 	}
 	
 	return (fd);
@@ -81,6 +111,8 @@ int main(int argc, char *argv[]) {
 								 &clientlen)) < 0) {
 			Die("Failed to receive message\n");
 		}
+		fprintf(stderr, "Client connected: %s\n", inet_ntoa(echoclient.sin_addr));    
+
 
 		if(buffer[0] == 255){
 			if( buffer[1] < 255)
@@ -94,16 +126,19 @@ int main(int argc, char *argv[]) {
 			if(buffer[5] < 5) {
 				fprintf(stderr, "buffer 5 <5\n"); //debug
 				fprintf(stderr, "buffer0-5: '%s'\n", buffer); //debug
-				//RS-232 Code
+				
+				//RS-232 Code start
 				int fd = open_port();
 				int n = write(fd, buffer, 6);
+				
 				if (n < 0)
 					fputs("write() of 6 bytes failed!\n", stderr);
+				else
+					fprintf(stderr, "Value(s) written to serial port\n");   
+				//RS-232 Code end
 			}
 		}else{
 			fprintf(stderr, "buffer0 != 254\n");
 		}
-
-		fprintf(stderr, "Client connected: %s\n", inet_ntoa(echoclient.sin_addr));    
 	}
 }
