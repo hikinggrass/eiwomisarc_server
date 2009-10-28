@@ -24,9 +24,6 @@
 int open_port(const char *pPort){
 	int fd; /* File descriptor for the port */
 
-	//fd = open("/dev/ttyS1", O_RDWR | O_NOCTTY | O_NDELAY);
-	//fd = open("test", O_RDWR | O_NOCTTY | O_NDELAY);
-
 	fd = open(pPort, O_RDWR | O_NOCTTY | O_NDELAY);
 
 	if (fd == -1){
