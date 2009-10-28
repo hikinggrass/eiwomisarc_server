@@ -212,7 +212,7 @@ int main(int argc, char **argv)
         printf("'%s' version 0.1\n",progname);
         printf("A client that sends udp-packets to a udp-server which controls\n");
 		printf("the EIWOMISA controller over RS-232\n");
-        printf("September 2009, Kai Hermann\n");
+        printf("September-October 2009, Kai Hermann\n");
         exitcode=0;
         goto exit;
 	}
