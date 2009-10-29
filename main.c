@@ -60,9 +60,7 @@ int open_port(const char *pPort){
 		tcsetattr(fd, TCSANOW, &options);
 
 		fprintf(stderr, "BAUDRATE SET TO 9600\n"); //debug
-
 	}
-
 	return (fd);
 }
 
@@ -79,6 +77,16 @@ int mymain(const char* progname, int port, char *serialport, int baud)
 		port = 1337;
 	}
 
+	if(serialport == NULL) {
+		printf("No Serialport specified - using /dev/ttyS0.\n",progname);
+		serialport = "/dev/ttyS0";
+	}
+
+	if(baud == -1) {
+		printf("No Baudrate specified - using 9600.\n",progname);
+		baud = 9600;
+	}
+
 	int sock;
 	struct sockaddr_in echoserver;
 	struct sockaddr_in echoclient;
@@ -87,11 +95,6 @@ int mymain(const char* progname, int port, char *serialport, int baud)
 
 	unsigned int clientlen, serverlen;
 	int received = 0;
-
-	//if (argc != 2) {
-	//	fprintf(stderr, "USAGE: %s <port>\n", argv[0]);
-	//	exit(1);
-	//}
 
 	/* Create the UDP socket */
 	if ((sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) {
@@ -148,24 +151,13 @@ int mymain(const char* progname, int port, char *serialport, int baud)
 			fprintf(stderr, "buffer0 != 254\n");
 		}
 	}
-
     return 0;
 }
 
 int main(int argc, char **argv)
 {
-	//init random number generator
-	//srand(time(0));
-
-	//server (ip adress, FIXME: check with regex)
-	//struct arg_str *serverip = arg_str0("sS","server,ip","","specify the ip address of the server, default: localhost");
-
 	struct arg_int *serverport = arg_int0("pP","port","","specify the serverport, default: 1337");
-	/*struct arg_str *values = arg_strn("vV","values","",0,1,"specify up to 4 values separated by ',' - range 0-255, default: 0, negative values: random");
-	struct arg_str *channels = arg_strn("cC","channels","",0,1,"specify up to 4 channels separated by ',' - range 0-512, default 0-3");
-	struct arg_str *mixed = arg_strn("mM","mixed","",0,1,"set values for corresponding channels. Format: <channel0>,<value0>,<channel1>,[...]");
-	*/
-	struct arg_str *serialport = arg_str1("sS", "serial", "", "specify the serial port, default /dev/ttyS0");
+	struct arg_str *serialport = arg_str0("sS", "serial", "", "specify the serial port, default /dev/ttyS0");
 	struct arg_int *baud = arg_int0("bB", "baud","","baudrate, default: 9600");
 
     struct arg_lit  *help    = arg_lit0("hH","help",                    "print this help and exit");
@@ -237,18 +229,22 @@ int main(int argc, char **argv)
 
     /* normal case: take the command line options at face value */
 
-	//check if server ip is set
-	//char *c_serverip = NULL;
-	//if(serverip->count>0)
-	//	c_serverip = (char *)serverip->sval[0];
-
 	//check if server port is set
 	int i_serverport = -1;
 	if(serverport->count>0)
 		i_serverport = (int)serverport->ival[0];
-	//int mymain(const char* progname, int port, char *serialport, int baud);
 
-	exitcode = mymain(progname, i_serverport, (char*)serialport->sval[0], (int)baud->ival[0]);
+	//check if serial port is set
+	char* i_serialport = NULL;
+	if(serialport->count>0)
+		i_serialport = (char*)serialport->sval[0];
+
+	//check if baudrate is set
+	int i_baudrate = -1;
+	if(baud->count>0)
+		i_baudrate = (int)baud->ival[0];
+
+	exitcode = mymain(progname, i_serverport, i_serialport, i_baudrate);
 
 exit:
     /* deallocate each non-null entry in argtable[] */
