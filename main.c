@@ -1,4 +1,4 @@
-//UDP & gemeinsame includes
+/* UDP & other includes */
 #include <stdio.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -7,12 +7,12 @@
 #include <unistd.h>
 #include <netinet/in.h>
 
-//RS-232
+/* RS-232 */
 #include <fcntl.h>   /* File control definitions */
 #include <errno.h>   /* Error number definitions */
 #include <termios.h> /* POSIX terminal control definitions */
 
-//argtable
+/* argtable */
 #include "argtable2/argtable2.h"
 
 /*
@@ -20,7 +20,6 @@
  *
  * Returns the file descriptor on success or -1 on error.
  */
-
 int open_port(const char *pPort)
 {
 	int fd; /* File descriptor for the port */
@@ -34,48 +33,37 @@ int open_port(const char *pPort)
 
 		struct termios options;
 
-		/*
-		 * Get the current options for the port...
-		 */
-
+		/* Get the current options for the port... */
 		tcgetattr(fd, &options);
 
-		/*
-		 * Set the baud rates to 9600...
-		 */
-
+		/* Set the baud rates to 9600... */
 		cfsetispeed(&options, B9600);
 		cfsetospeed(&options, B9600);
 
-		/*
-		 * Enable the receiver and set local mode...
-		 */
-
+		/* Enable the receiver and set local mode... */
 		options.c_cflag |= (CLOCAL | CREAD);
 
-		/*
-		 * Set the new options for the port...
-		 */
+		/* Set the new options for the port... */
 
 		tcsetattr(fd, TCSANOW, &options);
 
-		fprintf(stderr, "BAUDRATE SET TO 9600\n"); //debug
+		fprintf(stderr, "BAUDRATE SET TO 9600\n"); /* debug */
 	}
 	return (fd);
 }
 
-//code für udp
 #define BUFFSIZE 6
+
 void Die(char *mess)
 {
 	perror(mess);
 	exit(1);
 }
 
-//mainloop
+/* mainloop */
 int mymain(const char* progname, int port, char *serialport, int baud)
 {
-	//check if ip & port are set, otherwise use defaults
+	/* check if port, serialport and baudrate are set, otherwise use defaults */
 	if(port == -1) {
 		printf("No Port specified - using 1337.\n",progname);
 		port = 1337;
@@ -128,20 +116,21 @@ int mymain(const char* progname, int port, char *serialport, int baud)
 		}
 		fprintf(stderr, "Client connected: %s\n", inet_ntoa(echoclient.sin_addr));    
 
+		/* debug */
 		if(buffer[0] == 255) {
 			if( buffer[1] < 255)
-				fprintf(stderr, "buffer 1 <255\n"); //debug
+				fprintf(stderr, "buffer 1 <255\n");
 			if(buffer[2] < 2)
-				fprintf(stderr, "buffer 2 <2\n"); //debug
+				fprintf(stderr, "buffer 2 <2\n");
 			if(buffer[3] < 255)
-				fprintf(stderr, "buffer 3 <255\n"); //debug
+				fprintf(stderr, "buffer 3 <255\n");
 			if(buffer[4] < 255)
-				fprintf(stderr, "buffer 4 <255\n"); //debug
+				fprintf(stderr, "buffer 4 <255\n");
 			if(buffer[5] < 5) {
-				fprintf(stderr, "buffer 5 <5\n"); //debug
-				fprintf(stderr, "buffer0-5: '%s'\n", buffer); //debug
+				fprintf(stderr, "buffer 5 <5\n");
+				fprintf(stderr, "buffer0-5: '%s'\n", buffer);
 
-				//RS-232 Code start
+				/* RS-232 Code start */
 				int fd = open_port(serialport);
 				int n = write(fd, buffer, 6);
 
@@ -149,7 +138,7 @@ int mymain(const char* progname, int port, char *serialport, int baud)
 					fputs("write() of 6 bytes failed!\n", stderr);
 				else
 					fprintf(stderr, "Value(s) written to serial port\n");   
-				//RS-232 Code end
+				/* RS-232 Code end */
 			}
 		} else {
 			fprintf(stderr, "buffer0 != 254\n");
@@ -171,7 +160,7 @@ int main(int argc, char **argv)
 
     void* argtable[] = {serverport,serialport,baud,help,version,end};
 
-	const char* progname = "udp_client_cmd"; //fixme!
+	const char* progname = "udp_client_cmd"; /* fixme! */
     int nerrors;
     int exitcode=0;
 
@@ -184,7 +173,7 @@ int main(int argc, char **argv)
 	}
 
     /* set any command line default values prior to parsing */
-	//nothing
+	/* nothing */
 
     /* Parse the command line as defined by argtable[] */
     nerrors = arg_parse(argc,argv,argtable);
@@ -228,17 +217,17 @@ int main(int argc, char **argv)
 
     /* normal case: take the command line options at face value */
 
-	//check if server port is set
+	/* check if server port is set */
 	int i_serverport = -1;
 	if(serverport->count>0)
 		i_serverport = (int)serverport->ival[0];
 
-	//check if serial port is set
+	/* check if serial port is set */
 	char* i_serialport = NULL;
 	if(serialport->count>0)
 		i_serialport = (char*)serialport->sval[0];
 
-	//check if baudrate is set
+	/* check if baudrate is set */
 	int i_baudrate = -1;
 	if(baud->count>0)
 		i_baudrate = (int)baud->ival[0];
