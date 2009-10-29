@@ -1,3 +1,9 @@
+#define VERSION "0.1"
+#define PROGNAME "udp_server"
+#define COPYING "September-October 2009, Kai Hermann"
+
+#define BUFFSIZE 6
+
 /* UDP & other includes */
 #include <stdio.h>
 #include <sys/socket.h>
@@ -51,8 +57,6 @@ int open_port(const char *pPort)
 	}
 	return (fd);
 }
-
-#define BUFFSIZE 6
 
 void Die(char *mess)
 {
@@ -118,6 +122,7 @@ int mymain(const char* progname, int port, char *serialport, int baud)
 
 		/* debug */
 		if(buffer[0] == 255) {
+			fprintf(stderr, "buffer 0 == 255\n");
 			if( buffer[1] < 255)
 				fprintf(stderr, "buffer 1 <255\n");
 			if(buffer[2] < 2)
@@ -160,14 +165,13 @@ int main(int argc, char **argv)
 
     void* argtable[] = {serverport,serialport,baud,help,version,end};
 
-	const char* progname = "udp_client_cmd"; /* fixme! */
     int nerrors;
     int exitcode=0;
 
     /* verify the argtable[] entries were allocated sucessfully */
     if (arg_nullcheck(argtable) != 0) {
         /* NULL entries were detected, some allocations must have failed */
-        printf("%s: insufficient memory\n",progname);
+        printf("%s: insufficient memory\n",PROGNAME);
         exitcode=1;
         goto exit;
 	}
@@ -180,9 +184,9 @@ int main(int argc, char **argv)
 
     /* special case: '--help' takes precedence over error reporting */
     if (help->count > 0) {
-        printf("Usage: %s", progname);
+        printf("Usage: %s", PROGNAME);
         arg_print_syntax(stdout,argtable,"\n");
-        printf("A client that sends udp-packets to a udp-server which controls\n");
+        printf("A server which receives udp-packets and controls\n");
 		printf("the EIWOMISA controller over RS-232\n");
         arg_print_glossary(stdout,argtable,"  %-25s %s\n");
         exitcode=0;
@@ -191,10 +195,11 @@ int main(int argc, char **argv)
 
     /* special case: '--version' takes precedence error reporting */
     if (version->count > 0) {
-        printf("'%s' version 0.1\n",progname);
-        printf("A client that sends udp-packets to a udp-server which controls\n");
+        printf("'%s' version ",PROGNAME);
+		printf(VERSION);
+        printf("\nA server which receives udp-packets and controls\n");
 		printf("the EIWOMISA controller over RS-232\n");
-        printf("September-October 2009, Kai Hermann\n");
+        printf(COPYING);
         exitcode=0;
         goto exit;
 	}
@@ -202,17 +207,18 @@ int main(int argc, char **argv)
     /* If the parser returned any errors then display them and exit */
     if (nerrors > 0) {
         /* Display the error details contained in the arg_end struct.*/
-        arg_print_errors(stdout,end,progname);
-        printf("Try '%s --help' for more information.\n",progname);
+        arg_print_errors(stdout,end,PROGNAME);
+        printf("Try '%s --help' for more information.\n",PROGNAME);
         exitcode=1;
         goto exit;
 	}
 
     /* special case: uname with no command line options induces brief help */
     if (argc==1) {
-        printf("Try '%s --help' for more information.\n",progname);
-        exitcode=0;
-        goto exit;
+		printf("No command-line options present, using defaults.\n",PROGNAME);
+        printf("Try '%s --help' for more information.\n",PROGNAME);
+        /* exitcode=0;
+        goto exit; */
 	}
 
     /* normal case: take the command line options at face value */
@@ -232,7 +238,7 @@ int main(int argc, char **argv)
 	if(baud->count>0)
 		i_baudrate = (int)baud->ival[0];
 
-	exitcode = mymain(progname, i_serverport, i_serialport, i_baudrate);
+	exitcode = mymain(PROGNAME, i_serverport, i_serialport, i_baudrate);
 
 exit:
     /* deallocate each non-null entry in argtable[] */
