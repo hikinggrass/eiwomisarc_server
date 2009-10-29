@@ -21,15 +21,15 @@
  * Returns the file descriptor on success or -1 on error.
  */
 
-int open_port(const char *pPort){
+int open_port(const char *pPort)
+{
 	int fd; /* File descriptor for the port */
 
 	fd = open(pPort, O_RDWR | O_NOCTTY | O_NDELAY);
 
-	if (fd == -1){
-		/* Could not open the port.*/
+	if (fd == -1) {
 		perror("open_port: Unable to open serial-port");
-	}else{
+	} else {
 		fcntl(fd, F_SETFL, 0);
 
 		struct termios options;
@@ -66,7 +66,11 @@ int open_port(const char *pPort){
 
 //code für udp
 #define BUFFSIZE 6
-void Die(char *mess) { perror(mess); exit(1); }
+void Die(char *mess)
+{
+	perror(mess);
+	exit(1);
+}
 
 //mainloop
 int mymain(const char* progname, int port, char *serialport, int baud)
@@ -124,7 +128,7 @@ int mymain(const char* progname, int port, char *serialport, int baud)
 		}
 		fprintf(stderr, "Client connected: %s\n", inet_ntoa(echoclient.sin_addr));    
 
-		if(buffer[0] == 255){
+		if(buffer[0] == 255) {
 			if( buffer[1] < 255)
 				fprintf(stderr, "buffer 1 <255\n"); //debug
 			if(buffer[2] < 2)
@@ -147,7 +151,7 @@ int mymain(const char* progname, int port, char *serialport, int baud)
 					fprintf(stderr, "Value(s) written to serial port\n");   
 				//RS-232 Code end
 			}
-		}else{
+		} else {
 			fprintf(stderr, "buffer0 != 254\n");
 		}
 	}
@@ -172,8 +176,7 @@ int main(int argc, char **argv)
     int exitcode=0;
 
     /* verify the argtable[] entries were allocated sucessfully */
-    if (arg_nullcheck(argtable) != 0)
-	{
+    if (arg_nullcheck(argtable) != 0) {
         /* NULL entries were detected, some allocations must have failed */
         printf("%s: insufficient memory\n",progname);
         exitcode=1;
@@ -187,8 +190,7 @@ int main(int argc, char **argv)
     nerrors = arg_parse(argc,argv,argtable);
 
     /* special case: '--help' takes precedence over error reporting */
-    if (help->count > 0)
-	{
+    if (help->count > 0) {
         printf("Usage: %s", progname);
         arg_print_syntax(stdout,argtable,"\n");
         printf("A client that sends udp-packets to a udp-server which controls\n");
@@ -199,8 +201,7 @@ int main(int argc, char **argv)
 	}
 
     /* special case: '--version' takes precedence error reporting */
-    if (version->count > 0)
-	{
+    if (version->count > 0) {
         printf("'%s' version 0.1\n",progname);
         printf("A client that sends udp-packets to a udp-server which controls\n");
 		printf("the EIWOMISA controller over RS-232\n");
@@ -210,8 +211,7 @@ int main(int argc, char **argv)
 	}
 
     /* If the parser returned any errors then display them and exit */
-    if (nerrors > 0)
-	{
+    if (nerrors > 0) {
         /* Display the error details contained in the arg_end struct.*/
         arg_print_errors(stdout,end,progname);
         printf("Try '%s --help' for more information.\n",progname);
@@ -220,8 +220,7 @@ int main(int argc, char **argv)
 	}
 
     /* special case: uname with no command line options induces brief help */
-    if (argc==1)
-	{
+    if (argc==1) {
         printf("Try '%s --help' for more information.\n",progname);
         exitcode=0;
         goto exit;
