@@ -43,11 +43,8 @@
 /* argtable */
 #include "argtable2/argtable2.h"
 
-/*
- * 'open_port()' - Open serial port 1.
- *
- * Returns the file descriptor on success or -1 on error.
- */
+/* open serial port 1.
+ * returns the file descriptor on success or -1 on error. */
 int open_port(const char *pPort)
 {
 	int fd; /* File descriptor for the port */
