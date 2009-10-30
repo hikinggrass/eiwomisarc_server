@@ -22,7 +22,7 @@
 
 #define VERSION "0.1"
 #define PROGNAME "udp_server"
-#define COPYING "September-October 2009, Kai Hermann"
+#define COPYRIGHT "September-October 2009, Kai Hermann"
 
 #define BUFFSIZE 6
 
@@ -221,7 +221,7 @@ int main(int argc, char **argv)
 		printf(VERSION);
         printf("\nA server which receives udp-packets and controls\n");
 		printf("the EIWOMISA controller over RS-232\n");
-        printf(COPYING);
+        printf(COPYRIGHT);
         exitcode=0;
         goto exit;
 	}
