@@ -20,6 +20,9 @@
  * Franklin Street, Fifth Floor, Boston MA 02110-1301, USA.
  *****************************************************************************/
 
+//#define VERSION "0.1"
+#include "git_rev.h"
+
 #define VERSION "0.1"
 #define PROGNAME "eiwomisarc_server"
 #define COPYRIGHT "September-October 2009, Kai Hermann"
@@ -263,9 +266,12 @@ int main(int argc, char **argv)
     if (version->count > 0) {
         printf("'%s' version ",PROGNAME);
 		printf(VERSION);
+		printf("\nGIT-REVISION: ");
+		printf(GITREV);
         printf("\nA server which receives udp-packets and controls\n");
 		printf("the EIWOMISA controller over RS-232\n");
         printf(COPYRIGHT);
+		printf("\n");
         exitcode=0;
         goto exit;
 	}

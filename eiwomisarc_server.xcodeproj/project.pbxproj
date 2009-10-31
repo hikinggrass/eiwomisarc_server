@@ -122,6 +122,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 1DEB928508733DD80010E9CD /* Build configuration list for PBXNativeTarget "eiwomisarc_server" */;
 			buildPhases = (
+				ACC1FC7C109CA1B20086C3A8 /* ShellScript */,
 				8DD76FAB0486AB0100D96B5E /* Sources */,
 				8DD76FAD0486AB0100D96B5E /* Frameworks */,
 				8DD76FAF0486AB0100D96B5E /* CopyFiles */,
@@ -152,6 +153,22 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		ACC1FC7C109CA1B20086C3A8 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "EIWOMISARC_GITREV=$(/usr/local/git/bin/git rev-parse HEAD)\necho \"#define GITREV \\\"\"$EIWOMISARC_GITREV\"\\\"\" > git_rev.h\nunset EIWOMISARC_GITREV";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		8DD76FAB0486AB0100D96B5E /* Sources */ = {
