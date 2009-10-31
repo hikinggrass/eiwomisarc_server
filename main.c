@@ -20,7 +20,6 @@
  * Franklin Street, Fifth Floor, Boston MA 02110-1301, USA.
  *****************************************************************************/
 
-//#define VERSION "0.1"
 #include "git_rev.h"
 
 #define VERSION "0.1"
