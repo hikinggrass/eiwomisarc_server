@@ -21,10 +21,11 @@
  *****************************************************************************/
 
 #define VERSION "0.1"
-#define PROGNAME "udp_server"
+#define PROGNAME "eiwomisarc_server"
 #define COPYRIGHT "September-October 2009, Kai Hermann"
+#define DEBUG 1
 
-#define BUFFSIZE 6
+#define BUFFSIZE 6 /* receive-puffer */
 
 /* UDP & other includes */
 #include <stdio.h>
@@ -36,40 +37,38 @@
 #include <netinet/in.h>
 
 /* RS-232 */
-#include <fcntl.h>   /* File control definitions */
-#include <errno.h>   /* Error number definitions */
+#include <fcntl.h>   /* file control definitions */
+#include <errno.h>   /* error number definitions */
 #include <termios.h> /* POSIX terminal control definitions */
 
 /* argtable */
 #include "argtable2/argtable2.h"
 
-/* open serial port 1.
- * returns the file descriptor on success or -1 on error. */
+/* open serial port
+ * returns the file descriptor on success or -1 on error */
 int open_port(const char *pPort)
 {
-	int fd; /* File descriptor for the port */
-
-	fd = open(pPort, O_RDWR | O_NOCTTY | O_NDELAY);
+	/* serial port file descriptor */
+	int fd = open(pPort, O_RDWR | O_NOCTTY | O_NDELAY);
 
 	if (fd == -1) {
-		perror("open_port: Unable to open serial-port");
+		perror("Unable to open serial-port");
 	} else {
 		fcntl(fd, F_SETFL, 0);
 
 		struct termios options;
 
-		/* Get the current options for the port... */
+		/* get the current options for the port */
 		tcgetattr(fd, &options);
 
-		/* Set the baud rates to 9600... */
+		/* FIXME: Set the baud rates to 9600 */
 		cfsetispeed(&options, B9600);
 		cfsetospeed(&options, B9600);
 
-		/* Enable the receiver and set local mode... */
+		/* enable the receiver and set local mode */
 		options.c_cflag |= (CLOCAL | CREAD);
 
-		/* Set the new options for the port... */
-
+		/* set the new options for the port */
 		tcsetattr(fd, TCSANOW, &options);
 
 		fprintf(stderr, "BAUDRATE SET TO 9600\n"); /* debug */
@@ -77,95 +76,143 @@ int open_port(const char *pPort)
 	return (fd);
 }
 
-void Die(char *mess)
+void die(char *message)
 {
-	perror(mess);
+	perror(message);
 	exit(1);
+}
+
+
+/* checkbuffer - debug=1 enables debug*/
+int checkbuffer (unsigned char *buffer, int debug) {
+
+	int error = 0;
+
+	if(buffer[0] == 255) {
+		if(debug > 0)
+			fprintf(stderr, "buffer[0] == 255\n");
+	} else {
+		error = 1;
+		if(debug > 0)
+			fprintf(stderr, "buffer[0] != 255\n");
+	}
+	if(buffer[1] < 255) {
+		if(debug > 0)
+			fprintf(stderr, "buffer[1] <255\n");
+	} else {
+		error = 1;
+		if(debug > 0)
+			fprintf(stderr, "buffer[1] >= 255\n");
+	}
+	if(buffer[2] < 2) {
+		if(debug > 0)
+			fprintf(stderr, "buffer[2] <2\n");
+	} else {
+		error = 1;
+		if(debug > 0)
+			fprintf(stderr, "buffer[2] >= 2\n");
+	}
+	if(buffer[3] < 255) {
+		if(debug > 0)
+			fprintf(stderr, "buffer[3] <255\n");
+	} else {
+		error = 1;
+		if(debug > 0)
+			fprintf(stderr, "buffer[3] >= 255\n");
+	}
+	if(buffer[4] < 255) {
+		if(debug > 0)
+			fprintf(stderr, "buffer[4] <255\n");
+	} else {
+		error = 1;
+		if(debug > 0)
+			fprintf(stderr, "buffer[4] >= 255\n");
+	}
+	if(buffer[5] < 5) {
+		if(debug > 0)
+			fprintf(stderr, "buffer[5] <5\n");
+	} else {
+		error = 1;
+		if(debug > 0)
+			fprintf(stderr, "buffer[5] >= 255\n");
+	}
+
+	return error;
 }
 
 /* mainloop */
 int mymain(const char* progname, int port, char *serialport, int baud)
 {
 	/* check if port, serialport and baudrate are set, otherwise use defaults */
-	if(port == -1) {
+	if (port == -1) {
 		printf("No Port specified - using 1337.\n",progname);
 		port = 1337;
 	}
 
-	if(serialport == NULL) {
+	if (serialport == NULL) {
 		printf("No Serialport specified - using /dev/ttyS0.\n",progname);
 		serialport = "/dev/ttyS0";
 	}
 
-	if(baud == -1) {
+	if (baud == -1) {
 		printf("No Baudrate specified - using 9600.\n",progname);
 		baud = 9600;
 	}
 
 	int sock;
-	struct sockaddr_in echoserver;
-	struct sockaddr_in echoclient;
+	struct sockaddr_in server;
+	struct sockaddr_in client;
 
 	unsigned char buffer[BUFFSIZE];
 
 	unsigned int clientlen, serverlen;
 	int received = 0;
 
-	/* Create the UDP socket */
+	/* create the UDP socket */
 	if ((sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) {
-		Die("Failed to create socket\n");
+		die("Failed to create socket\n");
 	}
 
-	/* Construct the server sockaddr_in structure */
-	memset(&echoserver, 0, sizeof(echoserver));       /* Clear struct */
-	echoserver.sin_family = AF_INET;                  /* Internet/IP */
-	echoserver.sin_addr.s_addr = htonl(INADDR_ANY);   /* Any IP address */
-	echoserver.sin_port = htons(port);       /* server port */
+	/* construct the server sockaddr_in structure */
+	memset(&server, 0, sizeof(server));			/* Clear struct */
+	server.sin_family = AF_INET;				/* Internet/IP */
+	server.sin_addr.s_addr = htonl(INADDR_ANY);	/* Any IP address */
+	server.sin_port = htons(port);				/* server port */
 
-	/* Bind the socket */
-	serverlen = sizeof(echoserver);
-	if (bind(sock, (struct sockaddr *) &echoserver, serverlen) < 0) {
-		Die("Failed to bind server socket\n");
+	/* bind the socket */
+	serverlen = sizeof(server);
+	if (bind(sock, (struct sockaddr *) &server, serverlen) < 0) {
+		die("Failed to bind server socket\n");
 	}
 
-	/* Run until cancelled */
+	/* wait for UDP-packets */
 	while (1) {
 		/* Receive a message from the client */
-		clientlen = sizeof(echoclient);
+		clientlen = sizeof(client);
 		if ((received = recvfrom(sock, buffer, BUFFSIZE, 0,
-								 (struct sockaddr *) &echoclient,
+								 (struct sockaddr *) &client,
 								 &clientlen)) < 0) {
-			Die("Failed to receive message\n");
+			die("Failed to receive message\n");
 		}
-		fprintf(stderr, "Client connected: %s\n", inet_ntoa(echoclient.sin_addr));    
+		fprintf(stderr, "Client connected: %s\n", inet_ntoa(client.sin_addr));    
 
 		/* debug */
-		if(buffer[0] == 255) {
-			fprintf(stderr, "buffer 0 == 255\n");
-			if( buffer[1] < 255)
-				fprintf(stderr, "buffer 1 <255\n");
-			if(buffer[2] < 2)
-				fprintf(stderr, "buffer 2 <2\n");
-			if(buffer[3] < 255)
-				fprintf(stderr, "buffer 3 <255\n");
-			if(buffer[4] < 255)
-				fprintf(stderr, "buffer 4 <255\n");
-			if(buffer[5] < 5) {
-				fprintf(stderr, "buffer 5 <5\n");
-				fprintf(stderr, "buffer0-5: '%s'\n", buffer);
+		int error = 0;
 
-				/* RS-232 Code start */
-				int fd = open_port(serialport);
-				int n = write(fd, buffer, 6);
+		checkbuffer(buffer, DEBUG);
 
-				if (n < 0)
-					fputs("write() of 6 bytes failed!\n", stderr);
-				else
-					fprintf(stderr, "Value(s) written to serial port\n");   
-				/* RS-232 Code end */
-			}
-		} else {
-			fprintf(stderr, "buffer0 != 254\n");
+		if (error == 0) {
+			fprintf(stderr, "buffer0-5: '%s'\n", buffer);
+
+			/* RS-232 Code start */
+			int fd = open_port(serialport);
+			int n = write(fd, buffer, 6);
+
+			if (n < 0)
+				fputs("write() of 6 bytes failed!\n", stderr);
+			else
+				fprintf(stderr, "Value(s) written to serial port\n");   
+			/* RS-232 Code end */
 		}
 	}
     return 0;
