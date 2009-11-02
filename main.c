@@ -27,7 +27,10 @@
 #define COPYRIGHT "September-October 2009, Kai Hermann"
 #define DEBUG 1
 
-#define BUFFSIZE 6 /* receive-puffer */
+#define EIWOMISA 0
+#define ATMO 1
+
+#define BUFFSIZE 19 /*FIXME: receive-puffer */
 
 /* UDP & other includes */
 #include <stdio.h>
@@ -48,7 +51,7 @@
 
 /* open serial port
  * returns the file descriptor on success or -1 on error */
-int open_port(const char *pPort)
+int open_port(const char *pPort) // FIXME: BAUDRATE?!
 {
 	/* serial port file descriptor */
 	int fd = open(pPort, O_RDWR | O_NOCTTY | O_NDELAY);
@@ -83,11 +86,7 @@ void die(char *message)
 	perror(message);
 	exit(1);
 }
-
-
-/* checkbuffer - debug=1 enables debug*/
-int checkbuffer (unsigned char *buffer, int debug) {
-
+int check_EIWOMISA (unsigned char *buffer, int debug) {
 	int error = 0;
 
 	if(buffer[0] == 255) {
@@ -142,8 +141,41 @@ int checkbuffer (unsigned char *buffer, int debug) {
 	return error;
 }
 
+int check_ATMO (unsigned char *buffer, int debug) {
+	int error = 0;
+
+	if(buffer[0] == 0xFF) {
+		if(debug > 0)
+			fprintf(stderr, "buffer[0] == 0xFF\n");
+	}
+	if(buffer[3] <= 0x0F) {
+		if(debug > 0)
+			fprintf(stderr, "buffer[3] <= 0x0F\n");
+	}else{
+		error = 1;
+		if(debug > 0)
+			fprintf(stderr, "buffer[3] > 0x0F\n");
+	}
+	return error;
+}
+
+/* checkbuffer - debug=1 enables debug*/
+int checkbuffer (unsigned char *buffer, int debug, int protocol) {
+	switch (protocol) {
+		case EIWOMISA:
+			return check_EIWOMISA(buffer, debug);
+			break;
+		case ATMO:
+			return check_ATMO(buffer, debug);
+			break;
+		default:
+			return 1;
+			break;
+	}
+}
+
 /* mainloop */
-int mymain(const char* progname, int port, char *serialport, int baud)
+int mymain(const char* progname, int port, char *serialport, int protocol, int baud)
 {
 	/* check if port, serialport and baudrate are set, otherwise use defaults */
 	if (port == -1) {
@@ -160,6 +192,9 @@ int mymain(const char* progname, int port, char *serialport, int baud)
 		printf("No Baudrate specified - using 9600.\n",progname);
 		baud = 9600;
 	}
+
+	if(protocol > 1)
+		protocol = EIWOMISA;
 
 	int sock;
 	struct sockaddr_in server;
@@ -187,11 +222,19 @@ int mymain(const char* progname, int port, char *serialport, int baud)
 		die("Failed to bind server socket\n");
 	}
 
+	int bufferlen = 0;
+	if(protocol == EIWOMISA) {
+		bufferlen = 6;
+	}else if(protocol == ATMO) {
+		bufferlen = 19;
+	}
+
 	/* wait for UDP-packets */
 	while (1) {
 		/* Receive a message from the client */
 		clientlen = sizeof(client);
-		if ((received = recvfrom(sock, buffer, BUFFSIZE, 0,
+
+		if ((received = recvfrom(sock, buffer, bufferlen, 0,
 								 (struct sockaddr *) &client,
 								 &clientlen)) < 0) {
 			die("Failed to receive message\n");
@@ -201,17 +244,24 @@ int mymain(const char* progname, int port, char *serialport, int baud)
 		/* debug */
 		int error = 0;
 
-		checkbuffer(buffer, DEBUG);
+		checkbuffer(buffer, DEBUG, protocol); //FIXME: other serial protocols?
 
 		if (error == 0) {
 			fprintf(stderr, "buffer0-5: '%s'\n", buffer);
 
+			//FIXME:
+			if(protocol == EIWOMISA) {
+				bufferlen = 6;
+			}else if(protocol == ATMO) {
+				bufferlen = (buffer[3]*3)+4;
+			}
+
 			/* RS-232 Code start */
 			int fd = open_port(serialport);
-			int n = write(fd, buffer, 6);
+			int n = write(fd, buffer, bufferlen);
 
 			if (n < 0)
-				fputs("write() of 6 bytes failed!\n", stderr);
+				fputs("write() failed!\n", stderr);
 			else
 				fprintf(stderr, "Value(s) written to serial port\n");   
 			/* RS-232 Code end */
@@ -224,6 +274,8 @@ int main(int argc, char **argv)
 {
 	struct arg_int *serverport = arg_int0("pP","port","","specify the serverport, default: 1337");
 	struct arg_str *serialport = arg_str0("sS", "serial", "", "specify the serial port, default /dev/ttyS0");
+	struct arg_int *protocol = arg_int0("", "protocol", "", "RS-232 protocol, 0=EIWOMISA, 1=ATMO");
+
 	struct arg_int *baud = arg_int0("bB", "baud","","baudrate, default: 9600");
 
     struct arg_lit  *help    = arg_lit0("hH","help",                    "print this help and exit");
@@ -231,7 +283,7 @@ int main(int argc, char **argv)
 
     struct arg_end  *end     = arg_end(20);
 
-    void* argtable[] = {serverport,serialport,baud,help,version,end};
+    void* argtable[] = {serverport,serialport,protocol,baud,help,version,end};
 
     int nerrors;
     int exitcode=0;
@@ -309,7 +361,7 @@ int main(int argc, char **argv)
 	if(baud->count>0)
 		i_baudrate = (int)baud->ival[0];
 
-	exitcode = mymain(PROGNAME, i_serverport, i_serialport, i_baudrate);
+	exitcode = mymain(PROGNAME, i_serverport, i_serialport, protocol->ival[0], i_baudrate);
 
 exit:
     /* deallocate each non-null entry in argtable[] */
