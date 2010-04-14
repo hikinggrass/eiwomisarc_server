@@ -49,9 +49,38 @@
 /* argtable */
 #include "argtable2/argtable2.h"
 
+/* check for valid baudrate
+ * throw _warning_ if baudrate is exotic */
+
+int check_baudrate(int pBaud)
+{
+	switch (pBaud) {
+		case B0: break;
+		case B50: break;
+		case B75: break;
+		case B110: break;
+		case B134: break;
+		case B150: break;
+		case B200: break;
+		case B300: break;
+		case B600: break;
+		case B1200: break;
+		case B1800: break;
+		case B2400: break;
+		case B4800: break;
+		case B9600: break;
+		case B19200: break;
+		case B38400: break;
+		default:
+			fprintf(stderr,	"BAUDRATE seems to be a little bit exotic\nbut hey, you'll know what you are doing ;)\n"); /* debug */
+			break;
+	}
+	return 0;
+}
+
 /* open serial port
  * returns the file descriptor on success or -1 on error */
-int open_port(const char *pPort) // FIXME: BAUDRATE?!
+int open_port(const char *pPort, int pBaud)
 {
 	/* serial port file descriptor */
 	int fd = open(pPort, O_RDWR | O_NOCTTY | O_NDELAY);
@@ -66,9 +95,11 @@ int open_port(const char *pPort) // FIXME: BAUDRATE?!
 		/* get the current options for the port */
 		tcgetattr(fd, &options);
 
-		/* FIXME: Set the baud rates to 9600 */
-		cfsetispeed(&options, B9600);
-		cfsetospeed(&options, B9600);
+		check_baudrate(pBaud);
+
+		/* set baudrate */
+		cfsetispeed(&options, pBaud);
+		cfsetospeed(&options, pBaud);
 
 		/* enable the receiver and set local mode */
 		options.c_cflag |= (CLOCAL | CREAD);
@@ -76,7 +107,7 @@ int open_port(const char *pPort) // FIXME: BAUDRATE?!
 		/* set the new options for the port */
 		tcsetattr(fd, TCSANOW, &options);
 
-		fprintf(stderr, "BAUDRATE SET TO 9600\n"); /* debug */
+		fprintf(stderr, "BAUDRATE SET TO %i\n",pBaud); /* debug */
 	}
 	return (fd);
 }
@@ -257,13 +288,15 @@ int mymain(const char* progname, int port, char *serialport, int protocol, int b
 			}
 
 			/* RS-232 Code start */
-			int fd = open_port(serialport);
+			int fd = open_port(serialport, baud);
 			int n = write(fd, buffer, bufferlen);
 
 			if (n < 0)
 				fputs("write() failed!\n", stderr);
 			else
-				fprintf(stderr, "Value(s) written to serial port\n");   
+				fprintf(stderr, "Value(s) written to serial port\n");
+
+			close(fd);
 			/* RS-232 Code end */
 		}
 	}
