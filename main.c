@@ -1,7 +1,7 @@
 /*****************************************************************************
  * udp_server: Control EIWOMISA over udp
  *****************************************************************************
- * Copyright (C) 2009 Kai Hermann
+ * Copyright (C) 2009-2010 Kai Hermann
  *
  * Authors: Kai Hermann <kai.uwe.hermann at gmail dot com>
  *
@@ -22,9 +22,9 @@
 
 #include "git_rev.h"
 
-#define VERSION "0.1"
+#define VERSION "0.2"
 #define PROGNAME "eiwomisarc_server"
-#define COPYRIGHT "September-October 2009, Kai Hermann"
+#define COPYRIGHT "2009-2010, Kai Hermann"
 #define DEBUG 1
 
 #define EIWOMISA 0
