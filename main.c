@@ -25,7 +25,6 @@
 #define VERSION "0.2"
 #define PROGNAME "eiwomisarc_server"
 #define COPYRIGHT "2009-2010, Kai Hermann"
-#define DEBUG 1
 
 #define EIWOMISA 0
 #define ATMO 1
@@ -45,6 +44,9 @@
 #include <fcntl.h>   /* file control definitions */
 #include <errno.h>   /* error number definitions */
 #include <termios.h> /* POSIX terminal control definitions */
+
+/* debug messages */
+#include "debug.h"
 
 /* argtable */
 #include "argtable2/argtable2.h"
@@ -72,7 +74,7 @@ int check_baudrate(int pBaud)
 		case B19200: break;
 		case B38400: break;
 		default:
-			fprintf(stderr,	"BAUDRATE seems to be a little bit exotic\nbut hey, you'll know what you are doing ;)\n"); /* debug */
+			msg_Dbg("BAUDRATE seems to be a little bit exotic\nbut hey, you'll know what you are doing ;)");
 			break;
 	}
 	return 0;
@@ -107,7 +109,7 @@ int open_port(const char *pPort, int pBaud)
 		/* set the new options for the port */
 		tcsetattr(fd, TCSANOW, &options);
 
-		fprintf(stderr, "BAUDRATE SET TO %i\n",pBaud); /* debug */
+		msg_Dbg("BAUDRATE SET TO %i\n",pBaud);
 	}
 	return (fd);
 }
@@ -117,87 +119,72 @@ void die(char *message)
 	perror(message);
 	exit(1);
 }
-int check_EIWOMISA (unsigned char *buffer, int debug) {
+int check_EIWOMISA (unsigned char *buffer) {
 	int error = 0;
 
 	if(buffer[0] == 255) {
-		if(debug > 0)
-			fprintf(stderr, "buffer[0] == 255\n");
+			msg_Dbg("buffer[0] == 255\n");
 	} else {
 		error = 1;
-		if(debug > 0)
-			fprintf(stderr, "buffer[0] != 255\n");
+			msg_Dbg("buffer[0] != 255\n");
 	}
 	if(buffer[1] < 255) {
-		if(debug > 0)
-			fprintf(stderr, "buffer[1] <255\n");
+			msg_Dbg("buffer[1] <255\n");
 	} else {
 		error = 1;
-		if(debug > 0)
-			fprintf(stderr, "buffer[1] >= 255\n");
+			msg_Dbg("buffer[1] >= 255\n");
 	}
 	if(buffer[2] < 2) {
-		if(debug > 0)
-			fprintf(stderr, "buffer[2] <2\n");
+			msg_Dbg("buffer[2] <2\n");
 	} else {
 		error = 1;
-		if(debug > 0)
-			fprintf(stderr, "buffer[2] >= 2\n");
+			msg_Dbg("buffer[2] >= 2\n");
 	}
 	if(buffer[3] < 255) {
-		if(debug > 0)
-			fprintf(stderr, "buffer[3] <255\n");
+			msg_Dbg("buffer[3] <255\n");
 	} else {
 		error = 1;
-		if(debug > 0)
-			fprintf(stderr, "buffer[3] >= 255\n");
+			msg_Dbg("buffer[3] >= 255\n");
 	}
 	if(buffer[4] < 255) {
-		if(debug > 0)
-			fprintf(stderr, "buffer[4] <255\n");
+			msg_Dbg("buffer[4] <255\n");
 	} else {
 		error = 1;
-		if(debug > 0)
-			fprintf(stderr, "buffer[4] >= 255\n");
+			msg_Dbg("buffer[4] >= 255\n");
 	}
 	if(buffer[5] < 5) {
-		if(debug > 0)
-			fprintf(stderr, "buffer[5] <5\n");
+			msg_Dbg("buffer[5] <5\n");
 	} else {
 		error = 1;
-		if(debug > 0)
-			fprintf(stderr, "buffer[5] >= 255\n");
+			msg_Dbg("buffer[5] >= 255\n");
 	}
 
 	return error;
 }
 
-int check_ATMO (unsigned char *buffer, int debug) {
+int check_ATMO (unsigned char *buffer) {
 	int error = 0;
 
 	if(buffer[0] == 0xFF) {
-		if(debug > 0)
-			fprintf(stderr, "buffer[0] == 0xFF\n");
+			msg_Dbg("buffer[0] == 0xFF\n");
 	}
 	if(buffer[3] <= 0x0F) {
-		if(debug > 0)
-			fprintf(stderr, "buffer[3] <= 0x0F\n");
+			msg_Dbg("buffer[3] <= 0x0F\n");
 	}else{
 		error = 1;
-		if(debug > 0)
-			fprintf(stderr, "buffer[3] > 0x0F\n");
+			msg_Dbg("buffer[3] > 0x0F\n");
 	}
 	return error;
 }
 
 /* checkbuffer - debug=1 enables debug*/
-int checkbuffer (unsigned char *buffer, int debug, int protocol) {
+int checkbuffer (unsigned char *buffer, int protocol) {
 	switch (protocol) {
 		case EIWOMISA:
-			return check_EIWOMISA(buffer, debug);
+			return check_EIWOMISA(buffer);
 			break;
 		case ATMO:
-			return check_ATMO(buffer, debug);
+			return check_ATMO(buffer);
 			break;
 		default:
 			return 1;
@@ -275,10 +262,10 @@ int mymain(const char* progname, int port, char *serialport, int protocol, int b
 		/* debug */
 		int error = 0;
 
-		checkbuffer(buffer, DEBUG, protocol); //FIXME: other serial protocols?
+		checkbuffer(buffer, protocol); //FIXME: other serial protocols?
 
 		if (error == 0) {
-			fprintf(stderr, "buffer0-5: '%s'\n", buffer);
+			msg_Dbg("buffer0-5: '%s'\n", buffer);
 
 			//FIXME:
 			if(protocol == EIWOMISA) {
@@ -294,7 +281,7 @@ int mymain(const char* progname, int port, char *serialport, int protocol, int b
 			if (n < 0)
 				fputs("write() failed!\n", stderr);
 			else
-				fprintf(stderr, "Value(s) written to serial port\n");
+				msg_Dbg("Value(s) written to serial port\n");
 
 			close(fd);
 			/* RS-232 Code end */
