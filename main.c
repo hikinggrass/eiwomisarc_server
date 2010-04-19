@@ -123,40 +123,40 @@ int check_EIWOMISA (unsigned char *buffer) {
 	int error = 0;
 
 	if(buffer[0] == 255) {
-			msg_Dbg("buffer[0] == 255\n");
+			msg_Dbg("buffer[0] == 255");
 	} else {
 		error = 1;
-			msg_Dbg("buffer[0] != 255\n");
+			msg_Dbg("buffer[0] != 255");
 	}
 	if(buffer[1] < 255) {
-			msg_Dbg("buffer[1] <255\n");
+			msg_Dbg("buffer[1] <255");
 	} else {
 		error = 1;
-			msg_Dbg("buffer[1] >= 255\n");
+			msg_Dbg("buffer[1] >= 255");
 	}
 	if(buffer[2] < 2) {
-			msg_Dbg("buffer[2] <2\n");
+			msg_Dbg("buffer[2] <2");
 	} else {
 		error = 1;
-			msg_Dbg("buffer[2] >= 2\n");
+			msg_Dbg("buffer[2] >= 2");
 	}
 	if(buffer[3] < 255) {
-			msg_Dbg("buffer[3] <255\n");
+			msg_Dbg("buffer[3] <255");
 	} else {
 		error = 1;
-			msg_Dbg("buffer[3] >= 255\n");
+			msg_Dbg("buffer[3] >= 255");
 	}
 	if(buffer[4] < 255) {
-			msg_Dbg("buffer[4] <255\n");
+			msg_Dbg("buffer[4] <255");
 	} else {
 		error = 1;
-			msg_Dbg("buffer[4] >= 255\n");
+			msg_Dbg("buffer[4] >= 255");
 	}
 	if(buffer[5] < 5) {
-			msg_Dbg("buffer[5] <5\n");
+			msg_Dbg("buffer[5] <5");
 	} else {
 		error = 1;
-			msg_Dbg("buffer[5] >= 255\n");
+			msg_Dbg("buffer[5] >= 255");
 	}
 
 	return error;
@@ -166,13 +166,13 @@ int check_ATMO (unsigned char *buffer) {
 	int error = 0;
 
 	if(buffer[0] == 0xFF) {
-			msg_Dbg("buffer[0] == 0xFF\n");
+			msg_Dbg("buffer[0] == 0xFF");
 	}
 	if(buffer[3] <= 0x0F) {
-			msg_Dbg("buffer[3] <= 0x0F\n");
+			msg_Dbg("buffer[3] <= 0x0F");
 	}else{
 		error = 1;
-			msg_Dbg("buffer[3] > 0x0F\n");
+			msg_Dbg("buffer[3] > 0x0F");
 	}
 	return error;
 }
@@ -281,7 +281,7 @@ int mymain(const char* progname, int port, char *serialport, int protocol, int b
 			if (n < 0)
 				fputs("write() failed!\n", stderr);
 			else
-				msg_Dbg("Value(s) written to serial port\n");
+				msg_Dbg("Value(s) written to serial port");
 
 			close(fd);
 			/* RS-232 Code end */
