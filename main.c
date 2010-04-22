@@ -45,8 +45,8 @@
 #include <errno.h>   /* error number definitions */
 #include <termios.h> /* POSIX terminal control definitions */
 
-/* debug messages */
-#include "debug.h"
+/* message functions */
+#include "messages.h"
 
 /* argtable */
 #include "argtable2/argtable2.h"
