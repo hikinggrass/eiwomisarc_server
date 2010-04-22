@@ -36,3 +36,15 @@ void msg_Dbg(char *fmt, ...)
 		printf("\n");
 	}
 }
+
+void msg_Err(char *fmt, ...)
+{
+	if (msglevel>0) {
+		va_list argp;
+		printf("ERROR: ");
+		va_start(argp, fmt);
+		vprintf(fmt, argp);
+		va_end(argp);
+		printf("\n");
+	}
+}
