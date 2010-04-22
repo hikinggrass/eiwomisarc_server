@@ -22,8 +22,8 @@
 
 #include <stdarg.h>
 
-/* FIXME! parse msglevel parameter, default 2 = error&debug messages*/
-int msglevel = 1;
+/* FIXME! parse msglevel parameter, default 2 = error&info messages*/
+int msglevel = 2;
 
 void msg_Dbg(char *fmt, ...)
 {

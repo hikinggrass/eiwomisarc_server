@@ -88,7 +88,7 @@ int open_port(const char *pPort, int pBaud)
 	int fd = open(pPort, O_RDWR | O_NOCTTY | O_NDELAY);
 
 	if (fd == -1) {
-		perror("Unable to open serial-port");
+		msg_Err("Unable to open serial-port");
 	} else {
 		fcntl(fd, F_SETFL, 0);
 
@@ -109,7 +109,7 @@ int open_port(const char *pPort, int pBaud)
 		/* set the new options for the port */
 		tcsetattr(fd, TCSANOW, &options);
 
-		msg_Dbg("BAUDRATE SET TO %i\n",pBaud);
+		msg_Dbg("BAUDRATE SET TO %i",pBaud);
 	}
 	return (fd);
 }
@@ -198,17 +198,17 @@ int mymain(const char* progname, int port, char *serialport, int protocol, int b
 {
 	/* check if port, serialport and baudrate are set, otherwise use defaults */
 	if (port == -1) {
-		printf("No Port specified - using 1337.\n",progname);
+		msg_Info("No Port set - using 1337");
 		port = 1337;
 	}
 
 	if (serialport == NULL) {
-		printf("No Serialport specified - using /dev/ttyS0.\n",progname);
+		msg_Info("No Serialport set - using /dev/ttyS0");
 		serialport = "/dev/ttyS0";
 	}
 
 	if (baud == -1) {
-		printf("No Baudrate specified - using 9600.\n",progname);
+		msg_Info("No Baudrate set - using 9600");
 		baud = 9600;
 	}
 
@@ -258,7 +258,7 @@ int mymain(const char* progname, int port, char *serialport, int protocol, int b
 								 &clientlen)) < 0) {
 			die("Failed to receive message\n");
 		}
-		fprintf(stderr, "Client connected: %s\n", inet_ntoa(client.sin_addr));    
+		msg_Info("Client connected: %s", inet_ntoa(client.sin_addr));
 
 		/* debug */
 		int error = 0;
@@ -266,7 +266,7 @@ int mymain(const char* progname, int port, char *serialport, int protocol, int b
 		checkbuffer(buffer, protocol); //FIXME: other serial protocols?
 
 		if (error == 0) {
-			msg_Dbg("buffer0-5: '%s'\n", buffer);
+			msg_Dbg("buffer0-5: '%s'", buffer);
 
 			//FIXME:
 			if(protocol == EIWOMISA) {
@@ -280,7 +280,7 @@ int mymain(const char* progname, int port, char *serialport, int protocol, int b
 			int n = write(fd, buffer, bufferlen);
 
 			if (n < 0)
-				fputs("write() failed!\n", stderr);
+				msg_Err("write() failed!");
 			else
 				msg_Dbg("Value(s) written to serial port");
 
