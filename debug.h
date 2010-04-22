@@ -27,9 +27,21 @@ int msglevel = 1;
 
 void msg_Dbg(char *fmt, ...)
 {
-	if (msglevel>1) {
+	if (msglevel>2) {
 		va_list argp;
 		printf("debug: ");
+		va_start(argp, fmt);
+		vprintf(fmt, argp);
+		va_end(argp);
+		printf("\n");
+	}
+}
+
+void msg_Info(char *fmt, ...)
+{
+	if (msglevel>1) {
+		va_list argp;
+		printf("info: ");
 		va_start(argp, fmt);
 		vprintf(fmt, argp);
 		va_end(argp);

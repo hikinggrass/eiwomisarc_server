@@ -388,7 +388,7 @@ int main(int argc, char **argv)
 	/* --debug enables debug messages */
     if (debug->count > 0) {
 		printf("debug messages enabled\n");
-		msglevel = 2;
+		msglevel = 3;
 	}
 
 	/* --silent disables all (!) messages */
