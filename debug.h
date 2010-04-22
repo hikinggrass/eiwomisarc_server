@@ -60,3 +60,9 @@ void msg_Err(char *fmt, ...)
 		printf("\n");
 	}
 }
+
+void die(char *message)
+{
+	perror(message);
+	exit(1);
+}

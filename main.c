@@ -114,11 +114,6 @@ int open_port(const char *pPort, int pBaud)
 	return (fd);
 }
 
-void die(char *message)
-{
-	perror(message);
-	exit(1);
-}
 int check_EIWOMISA (unsigned char *buffer) {
 	int error = 0;
 
