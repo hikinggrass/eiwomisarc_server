@@ -299,12 +299,15 @@ int main(int argc, char **argv)
 
 	struct arg_int *baud = arg_int0("bB", "baud","","baudrate, default: 9600");
 
-    struct arg_lit  *help    = arg_lit0("hH","help",                    "print this help and exit");
-    struct arg_lit  *version = arg_lit0(NULL,"version",                 "print version information and exit");
+    struct arg_lit  *help    = arg_lit0("hH","help","print this help and exit");
+    struct arg_lit  *version = arg_lit0(NULL,"version","print version information and exit");
+
+	struct arg_lit  *debug = arg_lit0(NULL,"debug","print debug messages");
+    struct arg_lit  *silent = arg_lit0(NULL,"silent","print no messages");
 
     struct arg_end  *end     = arg_end(20);
 
-    void* argtable[] = {serverport,serialport,protocol,baud,help,version,end};
+    void* argtable[] = {serverport,serialport,protocol,baud,help,version,debug,silent,end};
 
     int nerrors;
     int exitcode=0;
@@ -381,6 +384,18 @@ int main(int argc, char **argv)
 	int i_baudrate = -1;
 	if(baud->count>0)
 		i_baudrate = (int)baud->ival[0];
+
+	/* --debug enables debug messages */
+    if (debug->count > 0) {
+		printf("debug messages enabled\n");
+		msglevel = 2;
+	}
+
+	/* --silent disables all (!) messages */
+    if (silent->count > 0) {
+		printf("i'll be silent now...\n");
+		msglevel = 0;
+	}
 
 	exitcode = mymain(PROGNAME, i_serverport, i_serialport, protocol->ival[0], i_baudrate);
 
