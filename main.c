@@ -335,12 +335,12 @@ int main(int argc, char **argv)
     /* special case: '--version' takes precedence error reporting */
     if (version->count > 0) {
         printf("'%s' version ",PROGNAME);
-		printf(VERSION);
+		printf("%s",VERSION);
 		printf("\nGIT-REVISION: ");
-		printf(GITREV);
+		printf("%s",GITREV);
         printf("\nA server which receives udp-packets and controls\n");
 		printf("the EIWOMISA controller over RS-232\n");
-        printf(COPYRIGHT);
+        printf("%s",COPYRIGHT);
 		printf("\n");
         exitcode=0;
         goto exit;
