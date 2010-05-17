@@ -53,7 +53,6 @@
 
 /* check for valid baudrate
  * throw _warning_ if baudrate is exotic */
-
 int check_baudrate(int pBaud)
 {
 	switch (pBaud) {
@@ -117,36 +116,47 @@ int open_port(const char *pPort, int pBaud)
 int check_EIWOMISA (unsigned char *buffer) {
 	int error = 0;
 
+	/* byte0: startbyte = 255 */
 	if(buffer[0] == 255) {
 		msg_Dbg("buffer[0] == 255");
 	} else {
 		error = 1;
 		msg_Dbg("buffer[0] != 255");
 	}
+
+	/* byte1: value part 1/2*/
 	if(buffer[1] < 255) {
 		msg_Dbg("buffer[1] <255");
 	} else {
 		error = 1;
 		msg_Dbg("buffer[1] >= 255");
 	}
+
+	/* byte2: value part 2/2 */
 	if(buffer[2] < 2) {
 		msg_Dbg("buffer[2] <2");
 	} else {
 		error = 1;
 		msg_Dbg("buffer[2] >= 2");
 	}
+
+	/* byte3: channel part 1/3 */
 	if(buffer[3] < 255) {
 		msg_Dbg("buffer[3] <255");
 	} else {
 		error = 1;
 		msg_Dbg("buffer[3] >= 255");
 	}
+
+	/* byte4: channel part 2/3 */
 	if(buffer[4] < 255) {
 		msg_Dbg("buffer[4] <255");
 	} else {
 		error = 1;
 		msg_Dbg("buffer[4] >= 255");
 	}
+
+	/* byte5: channel part 3/3 */
 	if(buffer[5] < 5) {
 		msg_Dbg("buffer[5] <5");
 	} else {
