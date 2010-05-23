@@ -1,6 +1,6 @@
 /*********************************************************************
 This file is part of the argtable2 library.
-Copyright (C) 1998-2001,2003-2009 Stewart Heitmann
+Copyright (C) 1998-2001,2003-2010 Stewart Heitmann
 sheitmann@users.sourceforge.net
 
 The argtable2 library is free software; you can redistribute it and/or

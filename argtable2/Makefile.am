@@ -16,7 +16,8 @@ libargtable2_la_SOURCES = argtable2.c arg_end.c arg_rem.c arg_lit.c arg_int.c ar
 # argtable-2.9 is 1:4:1 (makefile bug fix only, src code is identical to argtable-2.8)
 # argtable-2.10 is 1:5:1 (minor tweaks to configuration and documentation, src code is identical to argtable-2.8)
 # argtable-2.11 is 1:6:1 (minor tweaks to makefiles, src code is identical to argtable-2.8)
-libargtable2_la_LDFLAGS = -version-info 1:6:1
+# argtable-2.12 is 1:7:1 (added support for parsing hex,octal,binary integer formats)
+libargtable2_la_LDFLAGS = -version-info 1:7:1
 
 include_HEADERS = argtable2.h
 
