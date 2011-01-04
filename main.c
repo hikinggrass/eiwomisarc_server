@@ -45,11 +45,24 @@
 #include <errno.h>   /* error number definitions */
 #include <termios.h> /* POSIX terminal control definitions */
 
+/* global serial port */
+int g_fd = -1;
+
 /* message functions */
 #include "messages.h"
 
 /* argtable */
 #include "argtable2/argtable2.h"
+
+/* signal handling */
+#include <signal.h>
+
+void sigfunc(int sig) {
+	if(g_fd != -1) {
+		close(g_fd);
+	}
+	exit (0);
+}
 
 /* check for valid baudrate
  * throw _warning_ if baudrate is exotic */
@@ -260,8 +273,12 @@ int mymain(const char* progname, int port, char *serialport, int protocol, int b
 		bufferlen = 19;
 	}
 
+	//signal handler
+	signal(SIGTERM,sigfunc);
+	signal(SIGINT,sigfunc);
+
 	//open serial port
-	int fd = open_port(serialport, baud);
+	g_fd = open_port(serialport, baud);
 	
 	/* wait for UDP-packets */
 	while (1) {
@@ -291,7 +308,7 @@ int mymain(const char* progname, int port, char *serialport, int protocol, int b
 			}
 
 			/* RS-232 Code start */
-			int n = write(fd, buffer, bufferlen);
+			int n = write(g_fd, buffer, bufferlen);
 
 			if (n < 0)
 				msg_Err("write() failed!");
@@ -303,7 +320,7 @@ int mymain(const char* progname, int port, char *serialport, int protocol, int b
 	}
 	
 	//close serial port
-	close(fd);
+	close(g_fd);
     return 0;
 }
 
