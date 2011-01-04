@@ -1,7 +1,7 @@
 /*****************************************************************************
  * udp_server: Control EIWOMISA over udp
  *****************************************************************************
- * Copyright (C) 2009-2010 Kai Hermann
+ * Copyright (C) 2009-2011 Kai Hermann
  *
  * Authors: Kai Hermann <kai.uwe.hermann at gmail dot com>
  *
@@ -25,11 +25,7 @@
 #define VERSION "0.3"
 #define PROGNAME "eiwomisarc_server"
 #define COPYRIGHT "2009-2011, Kai Hermann"
-
-#define EIWOMISA 0
-#define ATMO 1
-
-#define BUFFSIZE 19 /*FIXME: receive-puffer */
+#define BUFFSIZE 6
 
 /* UDP & other includes */
 #include <stdio.h>
@@ -45,9 +41,6 @@
 #include <errno.h>   /* error number definitions */
 #include <termios.h> /* POSIX terminal control definitions */
 
-/* global serial port */
-int g_fd = -1;
-
 /* message functions */
 #include "messages.h"
 
@@ -57,9 +50,13 @@ int g_fd = -1;
 /* signal handling */
 #include <signal.h>
 
+/* global serial port */
+int global_serialport = -1;
+
+/* signal handler */
 void sigfunc(int sig) {
-	if(g_fd != -1) {
-		close(g_fd);
+	if(global_serialport != -1) {
+		close(global_serialport);
 	}
 	exit (0);
 }
@@ -133,7 +130,8 @@ int open_port(const char *pPort, int pBaud)
 	return (fd);
 }
 
-int check_EIWOMISA (unsigned char *buffer) {
+/* check if buffer is valid */
+int checkbuffer (unsigned char *buffer) {
 	int error = 0;
 
 	/* byte0: startbyte = 255 */
@@ -187,39 +185,8 @@ int check_EIWOMISA (unsigned char *buffer) {
 	return error;
 }
 
-int check_ATMO (unsigned char *buffer) {
-	int error = 0;
-
-	if(buffer[0] == 0xFF) {
-		msg_Dbg("buffer[0] == 0xFF");
-	}
-	if(buffer[3] <= 0x0F) {
-		msg_Dbg("buffer[3] <= 0x0F");
-	}else{
-		error = 1;
-		msg_Dbg("buffer[3] > 0x0F");
-	}
-
-	return error;
-}
-
-/* checkbuffer - debug=1 enables debug*/
-int checkbuffer (unsigned char *buffer, int protocol) {
-	switch (protocol) {
-		case EIWOMISA:
-			return check_EIWOMISA(buffer);
-			break;
-		case ATMO:
-			return check_ATMO(buffer);
-			break;
-		default:
-			return 1;
-			break;
-	}
-}
-
 /* mainloop */
-int mymain(const char* progname, int port, char *serialport, int protocol, int baud)
+int mymain(int port, char *serialport, int baud)
 {
 	/* check if port, serialport and baudrate are set, otherwise use defaults */
 	if (port == -1) {
@@ -236,9 +203,6 @@ int mymain(const char* progname, int port, char *serialport, int protocol, int b
 		msg_Info("No Baudrate set - using 9600");
 		baud = 9600;
 	}
-
-	if(protocol > 1)
-		protocol = EIWOMISA;
 
 	int sock;
 	struct sockaddr_in server;
@@ -265,62 +229,43 @@ int mymain(const char* progname, int port, char *serialport, int protocol, int b
 	if (bind(sock, (struct sockaddr *) &server, serverlen) < 0) {
 		die("Failed to bind server socket\n");
 	}
-
-	int bufferlen = 0;
-	if(protocol == EIWOMISA) {
-		bufferlen = 6;
-	}else if(protocol == ATMO) {
-		bufferlen = 19;
-	}
-
-	//signal handler
+	
+	/* signal handler */
 	signal(SIGTERM,sigfunc);
 	signal(SIGINT,sigfunc);
 
-	//open serial port
-	g_fd = open_port(serialport, baud);
+	/* open serial port */
+	global_serialport = open_port(serialport, baud);
 	
 	/* wait for UDP-packets */
-	while (1) {
+	while (42) {
 		/* Receive a message from the client */
 		clientlen = sizeof(client);
 
-		if ((received = recvfrom(sock, buffer, bufferlen, 0,
+		if ((received = recvfrom(sock, buffer, BUFFSIZE, 0,
 								 (struct sockaddr *) &client,
 								 &clientlen)) < 0) {
 			die("Failed to receive message\n");
 		}
 		msg_Info("Client connected: %s", inet_ntoa(client.sin_addr));
 
-		/* debug */
-		int error = 0;
-
-		checkbuffer(buffer, protocol); //FIXME: other serial protocols?
-
-		if (error == 0) {
+		if (checkbuffer(buffer) == 0) {
 			msg_Dbg("buffer0-5: '%s'", buffer);
 
-			//FIXME:
-			if(protocol == EIWOMISA) {
-				bufferlen = 6;
-			}else if(protocol == ATMO) {
-				bufferlen = (buffer[3]*3)+4;
-			}
-
 			/* RS-232 Code start */
-			int n = write(g_fd, buffer, bufferlen);
+			int n = write(global_serialport, buffer, BUFFSIZE);
 
-			if (n < 0)
+			if (n < 0) {
 				msg_Err("write() failed!");
-			else
+			} else {
 				msg_Dbg("Value(s) written to serial port");
-
+			}
 			/* RS-232 Code end */
 		}
 	}
 	
-	//close serial port
-	close(g_fd);
+	/* close serial port */
+	close(global_serialport);
     return 0;
 }
 
@@ -328,7 +273,6 @@ int main(int argc, char **argv)
 {
 	struct arg_int *serverport = arg_int0("pP","port","","specify the serverport, default: 1337");
 	struct arg_str *serialport = arg_str0("sS", "serial", "", "specify the serial port, default /dev/ttyS0");
-	struct arg_int *protocol = arg_int0("", "protocol", "", "RS-232 protocol, 0=EIWOMISA, 1=ATMO");
 
 	struct arg_int *baud = arg_int0("bB", "baud","","baudrate, default: 9600");
 
@@ -340,7 +284,7 @@ int main(int argc, char **argv)
 
     struct arg_end  *end     = arg_end(20);
 
-    void* argtable[] = {serverport,serialport,protocol,baud,help,version,debug,silent,end};
+    void* argtable[] = {serverport,serialport,baud,help,version,debug,silent,end};
 
     int nerrors;
     int exitcode=0;
@@ -348,7 +292,7 @@ int main(int argc, char **argv)
     /* verify the argtable[] entries were allocated sucessfully */
     if (arg_nullcheck(argtable) != 0) {
         /* NULL entries were detected, some allocations must have failed */
-        printf("%s: insufficient memory\n");
+        printf("%s: insufficient memory\n",PROGNAME);
         exitcode=1;
         goto exit;
 	}
@@ -361,7 +305,6 @@ int main(int argc, char **argv)
 
     /* special case: '--help' takes precedence over error reporting */
     if (help->count > 0) {
-        printf("Usage: %s");
         arg_print_syntax(stdout,argtable,"\n");
         printf("A server which receives udp-packets and controls\n");
 		printf("the EIWOMISA controller over RS-232\n");
@@ -430,7 +373,7 @@ int main(int argc, char **argv)
 		msglevel = 0;
 	}
 
-	exitcode = mymain(PROGNAME, i_serverport, i_serialport, protocol->ival[0], i_baudrate);
+	exitcode = mymain(i_serverport, i_serialport, i_baudrate);
 
 exit:
     /* deallocate each non-null entry in argtable[] */
