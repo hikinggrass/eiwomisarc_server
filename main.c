@@ -85,29 +85,36 @@ int open_port(const char *pPort, int pBaud)
 {
 	/* serial port file descriptor */
 	int fd = open(pPort, O_RDWR | O_NOCTTY | O_NDELAY);
-
+	
+	if(fd == -1) {
+		msg_Err("Unable to open serial-port");
+		msg_Info("Retrying in 5 seconds...");
+		sleep(5);
+		fd = open(pPort, O_RDWR | O_NOCTTY | O_NDELAY);
+	}
+	
 	if (fd == -1) {
 		msg_Err("Unable to open serial-port");
 	} else {
 		fcntl(fd, F_SETFL, 0);
-
+		
 		struct termios options;
-
+		
 		/* get the current options for the port */
 		tcgetattr(fd, &options);
-
+		
 		check_baudrate(pBaud);
-
+		
 		/* set baudrate */
 		cfsetispeed(&options, pBaud);
 		cfsetospeed(&options, pBaud);
-
+		
 		/* enable the receiver and set local mode */
 		options.c_cflag |= (CLOCAL | CREAD);
-
+		
 		/* set the new options for the port */
 		tcsetattr(fd, TCSANOW, &options);
-
+		
 		msg_Dbg("BAUDRATE SET TO %i",pBaud);
 	}
 	return (fd);
