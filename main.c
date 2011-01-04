@@ -260,6 +260,9 @@ int mymain(const char* progname, int port, char *serialport, int protocol, int b
 		bufferlen = 19;
 	}
 
+	//open serial port
+	int fd = open_port(serialport, baud);
+	
 	/* wait for UDP-packets */
 	while (1) {
 		/* Receive a message from the client */
@@ -288,7 +291,6 @@ int mymain(const char* progname, int port, char *serialport, int protocol, int b
 			}
 
 			/* RS-232 Code start */
-			int fd = open_port(serialport, baud);
 			int n = write(fd, buffer, bufferlen);
 
 			if (n < 0)
@@ -296,10 +298,12 @@ int mymain(const char* progname, int port, char *serialport, int protocol, int b
 			else
 				msg_Dbg("Value(s) written to serial port");
 
-			close(fd);
 			/* RS-232 Code end */
 		}
 	}
+	
+	//close serial port
+	close(fd);
     return 0;
 }
 
@@ -327,7 +331,7 @@ int main(int argc, char **argv)
     /* verify the argtable[] entries were allocated sucessfully */
     if (arg_nullcheck(argtable) != 0) {
         /* NULL entries were detected, some allocations must have failed */
-        printf("%s: insufficient memory\n",PROGNAME);
+        printf("%s: insufficient memory\n");
         exitcode=1;
         goto exit;
 	}
@@ -340,7 +344,7 @@ int main(int argc, char **argv)
 
     /* special case: '--help' takes precedence over error reporting */
     if (help->count > 0) {
-        printf("Usage: %s", PROGNAME);
+        printf("Usage: %s");
         arg_print_syntax(stdout,argtable,"\n");
         printf("A server which receives udp-packets and controls\n");
 		printf("the EIWOMISA controller over RS-232\n");
@@ -351,7 +355,7 @@ int main(int argc, char **argv)
 
     /* special case: '--version' takes precedence error reporting */
     if (version->count > 0) {
-        printf("'%s' version ",PROGNAME);
+        printf("'%s' version ");
 		printf("%s",VERSION);
 		printf("\nGIT-REVISION: ");
 		printf("%s",GITREV);
