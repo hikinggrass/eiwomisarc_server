@@ -22,9 +22,9 @@
 
 #include "git_rev.h"
 
-#define VERSION "0.2"
+#define VERSION "0.3"
 #define PROGNAME "eiwomisarc_server"
-#define COPYRIGHT "2009-2010, Kai Hermann"
+#define COPYRIGHT "2009-2011, Kai Hermann"
 
 #define EIWOMISA 0
 #define ATMO 1
@@ -355,7 +355,7 @@ int main(int argc, char **argv)
 
     /* special case: '--version' takes precedence error reporting */
     if (version->count > 0) {
-        printf("'%s' version ");
+        printf("'%s' version ",PROGNAME);
 		printf("%s",VERSION);
 		printf("\nGIT-REVISION: ");
 		printf("%s",GITREV);
