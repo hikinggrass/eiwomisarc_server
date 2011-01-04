@@ -271,8 +271,8 @@ int mymain(int port, char *serialport, int baud)
 
 int main(int argc, char **argv)
 {
-	struct arg_int *serverport = arg_int0("pP","port","","specify the serverport, default: 1337");
-	struct arg_str *serialport = arg_str0("sS", "serial", "", "specify the serial port, default /dev/ttyS0");
+	struct arg_int *serverport = arg_int0("pP","port","","serverport, default: 1337");
+	struct arg_str *serialport = arg_str0("sS", "serial", "", "serial port, default /dev/ttyS0");
 
 	struct arg_int *baud = arg_int0("bB", "baud","","baudrate, default: 9600");
 
@@ -369,7 +369,6 @@ int main(int argc, char **argv)
 
 	/* --silent disables all (!) messages */
     if (silent->count > 0) {
-		printf("i'll be silent now...\n");
 		msglevel = 0;
 	}
 
