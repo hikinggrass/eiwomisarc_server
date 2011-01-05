@@ -105,7 +105,7 @@ int open_port(const char *pPort, int pBaud)
 	}
 	
 	if (fd == -1) {
-		msg_Err("Unable to open serial-port");
+		die("Unable to open serial-port");
 	} else {
 		fcntl(fd, F_SETFL, 0);
 		
