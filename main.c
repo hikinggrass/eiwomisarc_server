@@ -22,7 +22,7 @@
 
 #include "git_rev.h"
 
-#define VERSION "0.3"
+#define VERSION "0.4"
 #define PROGNAME "eiwomisarc_server"
 #define COPYRIGHT "2009-2011, Kai Hermann"
 #define BUFFSIZE 6
