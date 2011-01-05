@@ -58,6 +58,7 @@ void sigfunc(int sig) {
 	if(global_serialport != -1) {
 		close(global_serialport);
 	}
+	printf("\n");
 	exit (0);
 }
 
@@ -305,9 +306,8 @@ int main(int argc, char **argv)
 
     /* special case: '--help' takes precedence over error reporting */
     if (help->count > 0) {
+		printf("usage: %s", PROGNAME);
         arg_print_syntax(stdout,argtable,"\n");
-        printf("A server which receives udp-packets and controls\n");
-		printf("the EIWOMISA controller over RS-232\n");
         arg_print_glossary(stdout,argtable,"  %-25s %s\n");
         exitcode=0;
         goto exit;
@@ -319,7 +319,7 @@ int main(int argc, char **argv)
 		printf("%s",VERSION);
 		printf("\nGIT-REVISION: ");
 		printf("%s",GITREV);
-        printf("\nA server which receives udp-packets and controls\n");
+        printf("\n%s receives udp-packets and controls\n",PROGNAME);
 		printf("the EIWOMISA controller over RS-232\n");
         printf("%s",COPYRIGHT);
 		printf("\n");
@@ -336,12 +336,10 @@ int main(int argc, char **argv)
         goto exit;
 	}
 
-    /* special case: uname with no command line options induces brief help */
+    /* special case: with no command line options induce brief help and use defaults */
     if (argc==1) {
 		printf("No command-line options present, using defaults.\n",PROGNAME);
         printf("Try '%s --help' for more information.\n",PROGNAME);
-        /* exitcode=0;
-        goto exit; */
 	}
 
     /* normal case: take the command line options at face value */
