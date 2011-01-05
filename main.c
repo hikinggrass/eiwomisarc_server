@@ -186,8 +186,20 @@ int checkbuffer (unsigned char *buffer) {
 	return error;
 }
 
+/*	check if IP address is provided in a valid format,
+ if ip is invalid, use localhost. */
+in_addr_t check_ip(char *pIp)
+{
+	in_addr_t ip;
+	if(inet_pton(AF_INET, pIp, &ip) < 1) {
+	msg_Err("Incorrect client IP provided, using 127.0.0.1");
+		inet_pton(AF_INET, "127.0.0.1", &ip);
+	}
+	return ip;
+}
+
 /* mainloop */
-int mymain(int port, char *serialport, int baud)
+int mymain(int port, char *serialport, int baud, in_addr_t validip)
 {
 	/* check if port, serialport and baudrate are set, otherwise use defaults */
 	if (port == -1) {
@@ -248,20 +260,25 @@ int mymain(int port, char *serialport, int baud)
 								 &clientlen)) < 0) {
 			die("Failed to receive message\n");
 		}
-		msg_Info("Client connected: %s", inet_ntoa(client.sin_addr));
-
-		if (checkbuffer(buffer) == 0) {
-			msg_Dbg("buffer0-5: '%s'", buffer);
-
-			/* RS-232 Code start */
-			int n = write(global_serialport, buffer, BUFFSIZE);
-
-			if (n < 0) {
-				msg_Err("write() failed!");
-			} else {
-				msg_Dbg("Value(s) written to serial port");
+		
+		if(client.sin_addr.s_addr != validip) {
+			msg_Info("Wrong client tried to connect to server: %s", inet_ntoa(client.sin_addr));
+		} else {
+			msg_Info("Client connected: %s", inet_ntoa(client.sin_addr));
+			
+			if (checkbuffer(buffer) == 0) {
+				msg_Dbg("buffer0-5: '%s'", buffer);
+				
+				/* RS-232 Code start */
+				int n = write(global_serialport, buffer, BUFFSIZE);
+				
+				if (n < 0) {
+					msg_Err("write() failed!");
+				} else {
+					msg_Dbg("Value(s) written to serial port");
+				}
+				/* RS-232 Code end */
 			}
-			/* RS-232 Code end */
 		}
 	}
 	
@@ -276,6 +293,8 @@ int main(int argc, char **argv)
 	struct arg_str *serialport = arg_str0("sS", "serial", "", "serial port, default /dev/ttyS0");
 
 	struct arg_int *baud = arg_int0("bB", "baud","","baudrate, default: 9600");
+	
+	struct arg_str *client = arg_str0("cC","client","","only accept messages from this client");
 
     struct arg_lit  *help    = arg_lit0("hH","help","print this help and exit");
     struct arg_lit  *version = arg_lit0(NULL,"version","print version information and exit");
@@ -285,7 +304,7 @@ int main(int argc, char **argv)
 
     struct arg_end  *end     = arg_end(20);
 
-    void* argtable[] = {serverport,serialport,baud,help,version,debug,silent,end};
+    void* argtable[] = {serverport,serialport,baud,client,help,version,debug,silent,end};
 
     int nerrors;
     int exitcode=0;
@@ -358,6 +377,9 @@ int main(int argc, char **argv)
 	int i_baudrate = -1;
 	if(baud->count>0)
 		i_baudrate = (int)baud->ival[0];
+	
+	/* check if client ip is set */
+	in_addr_t i_client = check_ip((char *)client->sval[0]);
 
 	/* --debug enables debug messages */
     if (debug->count > 0) {
@@ -370,7 +392,7 @@ int main(int argc, char **argv)
 		msglevel = 0;
 	}
 
-	exitcode = mymain(i_serverport, i_serialport, i_baudrate);
+	exitcode = mymain(i_serverport, i_serialport, i_baudrate, i_client);
 
 exit:
     /* deallocate each non-null entry in argtable[] */
