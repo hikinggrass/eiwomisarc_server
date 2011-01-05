@@ -199,7 +199,7 @@ in_addr_t check_ip(char *pIp)
 }
 
 /* mainloop */
-int mymain(int port, char *serialport, int baud, in_addr_t validip)
+int mymain(int port, char *serialport, int baud, char *validip)
 {
 	/* check if port, serialport and baudrate are set, otherwise use defaults */
 	if (port == -1) {
@@ -261,7 +261,7 @@ int mymain(int port, char *serialport, int baud, in_addr_t validip)
 			die("Failed to receive message\n");
 		}
 		
-		if(client.sin_addr.s_addr != validip) {
+		if(validip != NULL && client.sin_addr.s_addr != check_ip(validip)) {
 			msg_Info("Wrong client tried to connect to server: %s", inet_ntoa(client.sin_addr));
 		} else {
 			msg_Info("Client connected: %s", inet_ntoa(client.sin_addr));
@@ -379,8 +379,11 @@ int main(int argc, char **argv)
 		i_baudrate = (int)baud->ival[0];
 	
 	/* check if client ip is set */
-	in_addr_t i_client = check_ip((char *)client->sval[0]);
-
+	char* i_client = NULL;
+	if(client->count>0) {
+		i_client = (char *)client->sval[0];
+	}
+	
 	/* --debug enables debug messages */
     if (debug->count > 0) {
 		printf("debug messages enabled\n");
